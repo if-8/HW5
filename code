@@ -1,0 +1,119 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sb
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.dummy import DummyClassifier
+from sklearn import metrics
+from sklearn.metrics import plot_confusion_matrix
+
+# 1
+from google.colab import files
+uploaded = files.upload() 
+df=pd.read_csv("Titanic.csv")
+df.head()
+
+
+# 2
+print(df.head())
+print(df.shape)
+print(df.columns.values)
+
+# target variable is whether a passenger survived
+# dropped passenger number from logistic regression
+# does not have relevance for survival
+
+
+# 3
+feature_cols = ['Class', 'Sex', 'Age']
+X = df[feature_cols] # features
+y = df['Survived'] # target variable
+df = df.drop(columns=['Passenger'])
+
+
+# 4
+print(df.isnull().sum())
+
+
+# 5
+plt.figure(1)
+sb.countplot(x='Survived', data=df)
+
+plt.figure(2)
+sb.countplot(y='Class', data=df)
+
+plt.figure(3)
+sb.countplot(x='Sex', data=df)
+
+plt.figure(4)
+sb.countplot(y='Age', data=df)
+
+plt.show()
+
+
+# 6
+# Convert all categorical feature variables into dummy variables. (3)
+df2 = pd.get_dummies(df, columns=['Class', 'Sex', 'Age'])
+print(df2.head())
+
+
+# 7
+# Partition the data into train and test sets (70/30). Use random_state = 2020. (2)
+X = df2.iloc[:, 1:]
+y = df2.iloc[:, 0]
+print(X.head())
+print(y.head())
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=2020)
+
+
+# 8
+# Fit the training data to a logistic regression model. (2)
+logReg = LogisticRegression()
+logReg.fit(X_train, y_train)
+
+
+# 9
+# Predict the outcomes for the test set. (2)
+y_pred = logReg.predict(X_test)
+print(y_pred)
+
+
+# 10
+# Display the accuracy of your predictions for survivability. (2)
+print('Accuracy:', metrics.accuracy_score(y_test, y_pred),"or 77.31%")
+
+
+# 11
+# Display the confusion matrix along with the labels (Yes, No). Hint: You may want to use from sklearn.metrics import plot_confusion_matrix (2)
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+print(cnf_matrix)
+metrics.plot_confusion_matrix(logReg, X_test, y_test)
+plt.show()
+
+dummy_clf = DummyClassifier(strategy="most_frequent")
+dummy_clf.fit(X_train, y_train)
+dummy_clf.predict(X_test)
+dummy_clf.score(X_test,y_test)
+
+
+# 12
+# Now, display the predicted value of the survivability of a male adult passenger traveling in 3rd class. (3)
+#d = {'Class_1st': [0], 'Class_2nd':[0],'Class_3rd':[1], 'Class_Crew':[0],'Sex_Female': [0],'Sex_Male':[1],'Age_Adult':[1],'Age_Child':[0]}
+#x_new = pd.DataFrame(data=d)
+x_new = [[0,0,1,0,0,1,1,0]]
+#print(x_new)
+#x_new.reshape(1, -1)
+predict = logReg.predict(x_new)
+print(predict)
+
+
+# 13
+# Next, display the predicted probability of the survivability of a male adult passenger traveling in 3rd class. (3)
+probability = logReg.predict_proba(x_new)
+print(probability)
+# The classifier predicts survival as Yes if the probability in the second column of variable ‘probability’ is greater than 0.5
+# When the probability in the second column is less than 0.5, then the classifier is predicting No
+
+print("\nThe predicted probability of survivability is: 11.14%")
